@@ -1,0 +1,24 @@
+#!/bin/bash
+
+. <%= node['ec2ab']['root_dir'] %>/ec2-automate-backup-env.sh
+
+${SH_EC2AB} \
+    -r ${AWS_DEFAULT_REGION} \
+    -s tag \
+    -t "<%= node['ec2ab']['tag']['name'] %>,Values=<%= node['ec2ab']['tag']['value'] %>" \
+    -k <%= node['ec2ab']['rotate'] %> \
+    -p \
+    -n \
+> ${LOG_EC2AB} 2>&1
+
+ret=$?
+
+if [ ${ret} -eq 0 ]; then
+    func_logger "ec2ab snapshot succeeded[${ret}]."
+else
+    func_logger "ec2ab snapshot failed[${ret}]."
+fi
+
+[ ${FLG_MAIL} -eq 1 ] && func_mail ${ret}
+
+exit ${ret}

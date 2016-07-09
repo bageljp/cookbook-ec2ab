@@ -1,0 +1,40 @@
+export AWS_DEFAULT_REGION="<%= node['ec2ab']['region'] %>"
+export EC2_REGION="<%= node['ec2ab']['region'] %>"
+export EC2_URL="https://ec2.${EC2_REGION}.amazonaws.com"
+export DIR_ROOT="<%= node['ec2ab']['root_dir'] %>"
+export SH_EC2AB="${DIR_ROOT}/ec2-automate-backup-awscli.sh"
+export LOG_EC2AB="${DIR_ROOT}/ec2-automate-backup.log"
+
+export FLG_MAIL="<% if node['ec2ab']['mail']['enable'] -%>1<% else -%>0<% end -%>"
+export MAIL_TO="<%= node['ec2ab']['mail']['to'] %>"
+export MAIL_FROM="<%= node['ec2ab']['mail']['from'] %>"
+export MAIL_SUBJECT="<%= node['ec2ab']['mail']['subject'] %>"
+
+
+#-----------------------------------------------------------
+# Usage:
+#   func_mail {0|1}
+#-----------------------------------------------------------
+func_mail() {
+    if [ $1 -eq 0 ]; then
+        SUBJECT="[${MAIL_SUBJECT}] [${1}] EC2 backup succeeded"
+    else
+        SUBJECT="[${MAIL_SUBJECT}] [${1}] EC2 backup failed"
+    fi
+    echo -e "MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-2022-JP
+Content-Transfer-Encoding: 7bit
+Subject: ${SUBJECT}
+To: ${MAIL_TO}
+`cat ${LOG_EC2AB}`
+" | /usr/sbin/sendmail -f ${MAIL_FROM} -t -F ""
+}
+
+
+#-----------------------------------------------------------
+# Usage:
+#   func_logger {message}
+#-----------------------------------------------------------
+func_logger() {
+    logger -p user.error -t ec2ab "${1}"
+}
